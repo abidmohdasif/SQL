@@ -29,3 +29,52 @@ WHERE f2.BIOME_ID = f1.BIOME_ID) AS AVG_BIOME_SPAWNS,
     END AS STATUS
 FROM fortress1 f1;
 
+-- Question 5(HELP WITH GPT)
+SELECT MOB_NAME, SPAWNS
+FROM FORTRESS1 f1
+WHERE SPAWNS > (SELECT AVG(SPAWNS)
+    FROM (SELECT AVG(SPAWNS) AS "avg_spawn"
+        FROM FORTRESS1
+        GROUP BY BIOME_ID
+    )
+);
+
+-- QUESTION 6
+WITH BIOME_SUMMARY AS (
+    SELECT b.BIOME_ID, b.BIOME_NAME, 
+        (SELECT AVG(SPAWNS) FROM fortress1 f1 WHERE f1.BIOME_ID = b.BIOME_ID) AS F1_AVG, 
+        (SELECT AVG(SPAWNS) FROM fortress2 f2 WHERE f2.BIOME_ID = b.BIOME_ID) AS F2_AVG
+    FROM biomes b
+)
+ 
+SELECT * 
+FROM BIOME_SUMMARY
+ORDER BY BIOME_ID;
+
+-- Question 7
+INSERT INTO fortress1 (mob_name, biome_id, spawns, last_seen)
+SELECT f2.mob_name, f2.biome_id, f2.spawns, f2.last_seen
+FROM fortress2 f2
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM fortress1 f1
+    WHERE f1.mob_name = f2.mob_name
+    AND f1.biome_id = f2.biome_id
+);
+SELECT COUNT(*) FROM fortress1;
+
+-- Question  8
+MERGE INTO fortress1 f1
+USING fortress2 f2
+ON (f1.mob_name = f2.mob_name)
+WHEN MATCHED THEN
+    UPDATE SET
+        f1.spawns = f2.spawns,
+        f1.last_seen = f2.last_seen
+ 
+WHEN NOT MATCHED THEN
+    INSERT (mob_name, spawns, last_seen, biome_id)
+    VALUES (f2.mob_name, f2.spawns, f2.last_seen, f2.biome_id);
+    
+SELECT * FROM fortress1
+ORDER BY biome_id, mob_name;
