@@ -1,3 +1,5 @@
+-- Abid Asif 11/5/25
+
 -- Question 1
 SELECT MOB_NAME
 FROM fortress1
@@ -78,3 +80,4 @@ WHEN NOT MATCHED THEN
     
 SELECT * FROM fortress1
 ORDER BY biome_id, mob_name;
+
